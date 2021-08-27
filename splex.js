@@ -173,22 +173,22 @@ filenames.forEach(f => {
 
 // Color print line, with table flag for tagle format
 let colorPrint = function (color, file, line) {
-  return (chalk[color](`> ${file}: `) + chalk.white(`${line}`));
+  return (chalk[color](`# ${file}: `) + chalk.white(`${line}`));
 };
 
 let colorPrintTable = function (color, file, line) {
-  console.log(chalk[color](`> ${file}: `) + chalk.green('| ') + chalk.white(`${line}`));
+  console.log(chalk[color](`# ${file}: `) + chalk.green('| ') + chalk.white(`${line}`));
   console.log(chalk.green(appOptions.term.line));
 };
 
 // Mono print line with flag for table format
 let monoPrint = function (file, line) {
-  return (`> ${file}: ${line}`);
+  return (`# ${file}: ${line}`);
 };
 
 // Mono print line with flag for table format
 let monoPrintTable = function (file, line) {
-  console.log(`> ${file}: | ${line}`);
+  console.log(`# ${file}: | ${line}`);
   console.log(appOptions.term.line);
 };
 

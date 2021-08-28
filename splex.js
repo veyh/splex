@@ -27,6 +27,7 @@ Usage:
 $ splex [options] file_1 file_2 file_X
 
 Options:
+--file        -f    specify a different .splexrc.json file
 --table       -t    print as table rows
 --colors      -c    specify custom colors as: -c color1,color2
 --monochrome  -m    monochrome mode
@@ -54,6 +55,7 @@ wihout list of files provided
 `,
   {
     flags: {
+      file: {type: 'string', alias: 'f', default: '.splexrc.json'},
       table: {type: 'boolean', alias: 't'},
       colors: {type: 'string', alias: 'c'},
       monochrome: {type: 'boolean', alias: 'm'},
@@ -74,10 +76,8 @@ if (typeof cli.flags.level === 'number' &&
   chalk = require('chalk');
 }
 
-// ------------------------------------
 let testRcFile = function () {
-  const path = process.cwd() + '/.splexrc.json';
-  if (fs.existsSync(path)) {
+  if (fs.existsSync(cli.flags.file)) {
     return true;
   }
 
@@ -85,8 +85,7 @@ let testRcFile = function () {
 };
 
 let readRcFile = function () {
-  const path = process.cwd() + '/.splexrc.json';
-  const raw = fs.readFileSync(path);
+  const raw = fs.readFileSync(cli.flags.file);
   return JSON.parse(raw);
 };
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const chalk = require('chalk');
 const meow = require('meow');
 const Tail = require('tail').Tail;
 const fs = require('fs');
@@ -31,6 +30,7 @@ Options:
 --table       -t    print as table rows
 --colors      -c    specify custom colors as: -c color1,color2
 --monochrome  -m    monochrome mode
+--level       -l    force color support (0: none, 1: 16, 2: 256, 3: 16m)
 
 
 Config file:
@@ -56,10 +56,23 @@ wihout list of files provided
     flags: {
       table: {type: 'boolean', alias: 't'},
       colors: {type: 'string', alias: 'c'},
-      monochrome: {type: 'boolean', alias: 'm'}
+      monochrome: {type: 'boolean', alias: 'm'},
+      level: {type: 'number', alias: 'l'}
     }
   }
 );
+
+let chalk;
+
+if (typeof cli.flags.level === 'number' &&
+  cli.flags.level >= 0 &&
+  cli.flags.level <= 3
+) {
+  const c = require('chalk');
+  chalk = new c.Instance({level: cli.flags.level});
+} else {
+  chalk = require('chalk');
+}
 
 // ------------------------------------
 let testRcFile = function () {

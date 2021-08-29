@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+/* eslint-disable capitalized-comments */
 const meow = require('meow');
 const Tail = require('tail').Tail;
 const fs = require('fs');
+const chokidar = require('chokidar');
 
 const updateNotifier = require('update-notifier');
 const pkg = require('./package.json');
@@ -32,6 +34,7 @@ Options:
 --colors      -c    specify custom colors as: -c color1,color2
 --monochrome  -m    monochrome mode
 --level       -l    force color support (0: none, 1: 16, 2: 256, 3: 16m)
+--output      -o    write to a file instead of stdout
 
 
 Config file:
@@ -59,7 +62,8 @@ wihout list of files provided
       table: {type: 'boolean', alias: 't'},
       colors: {type: 'string', alias: 'c'},
       monochrome: {type: 'boolean', alias: 'm'},
-      level: {type: 'number', alias: 'l'}
+      level: {type: 'number', alias: 'l'},
+      output: {type: 'string', alias: 'o'}
     }
   }
 );
@@ -142,10 +146,32 @@ filenames.forEach((f, idx) => {
   appOptions.colorIdx[f] = appOptions.colors[cIdx];
 });
 
+let write = console.log;
+
+if (cli.flags.output) {
+  const watcher = chokidar.watch(cli.flags.output);
+  let stream = fs.createWriteStream(cli.flags.output, {flags: 'a'});
+
+  watcher.on('unlink', () => {
+    stream.end();
+    stream = fs.createWriteStream(cli.flags.output, {flags: 'a'});
+  });
+
+  write = text => {
+    stream.write(text + '\n');
+  };
+
+  process.on('SIGINT', () => {
+    stream.end();
+    process.exit();
+  });
+}
+
 // -------- START SPLEX -----------
-console.log('-------------------');
-console.log('  Starting SpleX   ');
-console.log('----- 🦈  🦈 ------');
+write('-------------------');
+write('  Starting SpleX   ');
+write('----- 🦈  🦈 ------');
+
 // Start tail listeners for each file provided
 filenames.forEach(f => {
   listeners[f] = new Tail(f);
@@ -179,8 +205,8 @@ filenames.forEach(f => {
     }
   });
 
-  listeners[f].on('error', err => console.log('Error: ', err));
-  console.log(chalk[appOptions.colorIdx[f]]('Setting up listener for: ') + f);
+  listeners[f].on('error', err => write('Error: ', err));
+  write(chalk[appOptions.colorIdx[f]]('Setting up listener for: ') + f);
 });
 
 // Color print line, with table flag for tagle format
@@ -189,8 +215,8 @@ let colorPrint = function (color, file, line) {
 };
 
 let colorPrintTable = function (color, file, line) {
-  console.log(chalk[color](`# ${file}: `) + chalk.green('| ') + chalk.white(`${line}`));
-  console.log(chalk.green(appOptions.term.line));
+  write(chalk[color](`# ${file}: `) + chalk.green('| ') + chalk.white(`${line}`));
+  write(chalk.green(appOptions.term.line));
 };
 
 // Mono print line with flag for table format
@@ -200,12 +226,12 @@ let monoPrint = function (file, line) {
 
 // Mono print line with flag for table format
 let monoPrintTable = function (file, line) {
-  console.log(`# ${file}: | ${line}`);
-  console.log(appOptions.term.line);
+  write(`# ${file}: | ${line}`);
+  write(appOptions.term.line);
 };
 
 let splexPrint = function (line) {
-  console.log(line);
+  write(line);
 };
 
 // Stuff that need to be re-calculated

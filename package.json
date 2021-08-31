@@ -21,7 +21,12 @@
     "url": "https://github.com/kodi/splex/issues"
   },
   "eslintConfig": {
-    "extends": "xo-space"
+    "extends": "xo-space",
+    "rules": {
+      "capitalized-comments": [
+        0
+      ]
+    }
   },
   "homepage": "https://github.com/kodi/splex#readme",
   "dependencies": {
@@ -29,6 +34,9 @@
     "chokidar": "^3.5.2",
     "dot-prop": ">=4.2.1",
     "meow": "^5.0.0",
+    "merge-stream": "^2.0.0",
+    "readable-stream": "3",
+    "split2": "^3.2.2",
     "tail": "^2.0.3",
     "update-notifier": "^3.0.1"
   },

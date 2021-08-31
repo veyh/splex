@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /* eslint-disable capitalized-comments */
 const meow = require('meow');
-const Tail = require('tail').Tail;
 const fs = require('fs');
 const chokidar = require('chokidar');
+const tail = require('./tail').tailSpawn;
 
 const updateNotifier = require('update-notifier');
 const pkg = require('./package.json');
@@ -133,8 +133,6 @@ let appOptions = {
   colorIdx: {}
 };
 
-let listeners = {};
-
 // Provide custom colors
 if (cli.flags.c) {
   appOptions.colors = cli.flags.c.split(',');
@@ -173,40 +171,45 @@ write('  Starting SpleX   ');
 write('----- 🦈  🦈 ------');
 
 // Start tail listeners for each file provided
-filenames.forEach(f => {
-  listeners[f] = new Tail(f);
-  listeners[f].on('line', l => {
-    let color = appOptions.colorIdx[f];
-    switch (optionsSum) {
-      case 1: // Tables, same as 3
-      case 3:
-        // Custom colors + table
-        colorPrintTable(color, f, l);
-        break;
-      case 0: // No options provided
-      case 2: // Custom colors provided, print default
-        splexPrint(colorPrint(color, f, l));
-        break;
-      case 4: // Mono - no tables, same as 6
-      case 6:
-        // Mono + custom colors, invalid combination,
-        // just print mono
-        splexPrint(monoPrint(f, l));
-        break;
-      case 5: // Mono - with tables, same as 7
-      case 7:
-        // Mono + table + custom colors
-        // invalid combination, print mono table
-        monoPrintTable(f, l);
-        break;
-      default:
-        colorPrint(color, f, l);
-        break;
+filenames.forEach(file => {
+  tail(file, {
+    line: line => {
+      let color = appOptions.colorIdx[file];
+      switch (optionsSum) {
+        case 1: // Tables, same as 3
+        case 3:
+          // Custom colors + table
+          colorPrintTable(color, file, line);
+          break;
+        case 0: // No options provided
+        case 2: // Custom colors provided, print default
+          splexPrint(colorPrint(color, file, line));
+          break;
+        case 4: // Mono - no tables, same as 6
+        case 6:
+          // Mono + custom colors, invalid combination,
+          // just print mono
+          splexPrint(monoPrint(file, line));
+          break;
+        case 5: // Mono - with tables, same as 7
+        case 7:
+          // Mono + table + custom colors
+          // invalid combination, print mono table
+          monoPrintTable(file, line);
+          break;
+        default:
+          colorPrint(color, file, line);
+          break;
+      }
+    },
+    error: err => {
+      write('Error: ', err);
     }
   });
 
-  listeners[f].on('error', err => write('Error: ', err));
-  write(chalk[appOptions.colorIdx[f]]('Setting up listener for: ') + f);
+  write(
+    chalk[appOptions.colorIdx[file]]('Setting up listener for: ') + file
+  );
 });
 
 // Color print line, with table flag for tagle format
